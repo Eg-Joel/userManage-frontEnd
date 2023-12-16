@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:3000/api/" 
+const baseUrl = "https://user-management-2sdb.onrender.com/api/" 
 const instance =axios.create({
     baseURL:baseUrl,
 })
