@@ -75,7 +75,10 @@ function AddUser() {
         setError("Please provide a valid email address.");
         return;
       }
-
+      if (!/^\d{10}$/.test(user.phone)) {
+        setError("Please provide a valid 10-digit phone number.");
+        return;
+      }
       if (editUser) {
         const hasChanges =
           user.username !== editUser.username ||

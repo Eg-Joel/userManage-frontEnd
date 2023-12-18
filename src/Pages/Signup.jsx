@@ -66,6 +66,10 @@ function Signup() {
         setError("Password should be at least 6 characters long.");
         return;
       }
+      if (!/^\d{10}$/.test(formData.phone)) {
+        setError("Please provide a valid 10-digit phone number.");
+        return;
+      }
       setLoading(true);
 
       const res = await axios.post("auth/signup", formData,{

@@ -27,6 +27,7 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import TableSortLabel from "@mui/material/TableSortLabel";
 
+
 function UsersList() {
   const userDetails = useSelector((state) => state.user);
   let user = userDetails?.currentUser;
@@ -39,9 +40,8 @@ function UsersList() {
   const [userSearch, setUserSearch] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [sortField, setSortField] = useState("username");
-  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [selectedFilter, setSelectedFilter] = useState("");
+  
   const handleClickOpen = (userId) => {
     setOpen(true);
     setSelectedUserId(userId);
@@ -52,7 +52,6 @@ function UsersList() {
   };
   const getUsers = async (value) => {
     try {
-      console.log(value);
       const response = await axios.get(`user/getUser?filter=${value}`, {
         headers: {
           "Content-Type": "application/json",
@@ -68,9 +67,7 @@ function UsersList() {
       console.error(error);
     }
   };
-  useEffect(() => {
-    getUsers();
-  }, []);
+ 
 
   useEffect(() => {
     const searchUsers = async () => {
@@ -88,7 +85,6 @@ function UsersList() {
             }
           );
           const searc = searchUsers.data;
-          console.log(searchUsers);
           setUserSearch(searc.users);
         } catch (error) {
           console.error(error);
@@ -99,20 +95,17 @@ function UsersList() {
   }, [searchInput]);
 
   useEffect(() => {
-    const sortedUsers = sortArray(users, sortField, sortOrder);
-    setFilteredUsers(sortedUsers);
-  }, [users, sortField, sortOrder]);
+    getUsers();
+  }, []);
+  
+  useEffect(() => {
+    getUsers(selectedFilter); 
+  }, [selectedFilter]);
 
-  const sortArray = (array, field, order) => {
-    const multiplier = order === "asc" ? 1 : -1;
-    return [...array].sort(
-      (a, b) => a[field].localeCompare(b[field]) * multiplier
-    );
-  };
-  const handleSort = (field) => {
-    const order = sortOrder === "asc" ? "desc" : "asc";
-    setSortOrder(order);
-    setSortField(field);
+  const handleFilterChange = (event) => {
+    const selectedValue = event.target.value;
+    setSelectedFilter(selectedValue);
+   
   };
 
   const handleDelete = async () => {
@@ -146,33 +139,40 @@ function UsersList() {
         label="Search"
         variant="outlined"
         value={searchInput}
-        onChange={(e) => setSearchInput(e.target.value)}
+        onChange={(e) => setSearchInput(e.target?.value)}
         margin="normal"
       />
 
-      <FormControl>
+      <FormControl
+        margin="normal"
+        variant="outlined"
+        sx={{ minWidth: 120, marginLeft: 3 }}
+      >
         <InputLabel id="filter-label">Filter</InputLabel>
-        <Select labelId="filter-label" id="filter-select">
-          <MenuItem value="username" onClick={() => getUsers("lastModified")}>
-            Last Modified
-          </MenuItem>
-          <MenuItem value="-username" onClick={() => getUsers("lastInserted")}>
-            Last Added
-          </MenuItem>
+        <Select
+          labelId="filter-label"
+          id="filter-select"
+          onChange={handleFilterChange}
+          value={selectedFilter}
+        >
+          <MenuItem value="lastModified">Last Modified</MenuItem>
+          <MenuItem value="lastInserted">Last Added</MenuItem>
+          <MenuItem value="asc">A-Z</MenuItem>
+          <MenuItem value="desc">Z-A</MenuItem>
         </Select>
       </FormControl>
+
+      
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
               <TableCell>
-                <TableSortLabel
-                  active={sortField === "username"}
-                  direction={sortOrder}
-                  onClick={() => handleSort("username")}
-                >
+              
+                 
+              
                   Name
-                </TableSortLabel>
+               
               </TableCell>
               <TableCell align="center">Email</TableCell>
               <TableCell align="center">Phone NUmber</TableCell>
@@ -216,8 +216,8 @@ function UsersList() {
                   </TableCell>
                 </TableRow>
               ))
-            ) : filteredUsers && filteredUsers.length > 0 ? (
-              filteredUsers.map((row) => (
+            ) : users && users.length > 0 ? (
+              users.map((row) => (
                 <TableRow
                   key={row._id}
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
